@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Carnac.Logic.KeyMonitor;
 using Carnac.Logic.Models;
@@ -22,6 +20,7 @@ namespace Carnac.Logic
         readonly IDesktopLockEventService desktopLockEventService;
         readonly PopupSettings settings;
         string currentFilter = null;
+        Regex currentFilterRegex = null;
 
         private readonly IList<Keys> modifierKeys =
             new List<Keys>
@@ -55,31 +54,35 @@ namespace Carnac.Logic
             settings = settingsProvider.GetSettings<PopupSettings>();
         }
 
-        private bool ShouldFilterProcess(out Regex filterRegex)
+        private bool ShouldFilterProcess()
         {
-            filterRegex = null;
-            if (settings?.ProcessFilterExpression != currentFilter)
-            {
-                currentFilter = settings?.ProcessFilterExpression;
+            string settingsFilterExpression = settings?.ProcessFilterExpression;
 
-                if (!string.IsNullOrEmpty(currentFilter))
+            if (settingsFilterExpression != currentFilter)
+            {
+                currentFilter = settingsFilterExpression;
+
+                if (!string.IsNullOrEmpty(settingsFilterExpression))
                 {
                     try
                     {
-                        filterRegex = new Regex(currentFilter, RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+                        currentFilterRegex = new Regex(settingsFilterExpression,
+                                                RegexOptions.IgnoreCase |
+                                                RegexOptions.Compiled,
+                                                TimeSpan.FromSeconds(1));
                     }
                     catch
                     {
-                        filterRegex = null;
+                        currentFilterRegex = null;
                     }
                 }
                 else
                 {
-                    filterRegex = null;
+                    currentFilterRegex = null;
                 }
             }
 
-            return (filterRegex != null);
+            return (currentFilterRegex != null);
         }
 
         public IObservable<KeyPress> GetKeyStream()
@@ -135,8 +138,7 @@ namespace Carnac.Logic
             }
 
             // see if this process is one being filtered for
-            Regex filterRegex;
-            if (ShouldFilterProcess(out filterRegex) && !filterRegex.IsMatch(process.ProcessName))
+            if (ShouldFilterProcess() && !currentFilterRegex.IsMatch(process.ProcessName))
             {
                 return null;
             }
@@ -173,22 +175,11 @@ namespace Carnac.Logic
                 if (shiftPressed)
                     yield return "Shift";
 
-                yield return interceptKeyEventArgs.Key.Sanitise();
+                yield return interceptKeyEventArgs.Key.SanitiseLower();
             }
             else
             {
-                string input;
-                var shiftModifiesInput = interceptKeyEventArgs.Key.SanitiseShift(out input);
-
-                if (!isLetter && !shiftModifiesInput && shiftPressed)
-                    yield return "Shift";
-
-                if (interceptKeyEventArgs.ShiftPressed && shiftModifiesInput)
-                    yield return input;
-                else if (isLetter && !interceptKeyEventArgs.ShiftPressed)
-                    yield return interceptKeyEventArgs.Key.ToString().ToLower();
-                else
-                    yield return interceptKeyEventArgs.Key.Sanitise();
+                yield return interceptKeyEventArgs.Key.Sanitise();
             }
         }
     }
