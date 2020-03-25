@@ -93,5 +93,6 @@ namespace Carnac.Logic.Models
         public bool SettingsConfigured { get; set; }
         public bool ShowOnlyModifiers { get; set; }
         public bool ShowSpaceAsUnicode { get; set; }
+        public bool ShowCharactersSeparate { get; set; }
     }
 }

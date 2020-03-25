@@ -104,16 +104,17 @@ namespace Carnac.Logic.Models
 
         static readonly TimeSpan OneSecond = TimeSpan.FromSeconds(1);
 
-        public static Message MergeIfNeeded(Message previousMessage, Message newMessage)
+        public static Message MergeIfNeeded(Message previousMessage, Message newMessage, bool showCharactersSeparate)
         {
-            return ShouldCreateNewMessage(previousMessage, newMessage)
+            return ShouldCreateNewMessage(previousMessage, newMessage, showCharactersSeparate)
                 ? newMessage
                 : previousMessage.Merge(newMessage);
         }
 
-        static bool ShouldCreateNewMessage(Message previous, Message current)
+        static bool ShouldCreateNewMessage(Message previous, Message current, bool showCharactersSeparate)
         {
             return previous.ProcessName != current.ProcessName ||
+                   (showCharactersSeparate && !previous.keys.LastOrDefault().Equals(current.keys.LastOrDefault())) ||
                    current.LastMessage.Subtract(previous.LastMessage) > OneSecond ||
                    !previous.CanBeMerged ||
                    !current.CanBeMerged;

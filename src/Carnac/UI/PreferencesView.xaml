@@ -7,7 +7,7 @@
                       xmlns:utilities="clr-namespace:Carnac.Utilities"
                       xmlns:carnac="clr-namespace:Carnac"
                       x:Class="Carnac.UI.PreferencesView"
-                      Width="610" Height="430" Icon="../icon.ico"
+                      Width="610" Height="500" Icon="../icon.ico"
                       Foreground="{DynamicResource BlackBrush}"
                       d:DataContext="{d:DesignInstance ui:PreferencesViewModel}" mc:Ignorable="d"
                       ShowTitleBar="False" ShowMinButton="False" ShowMaxRestoreButton="False"
@@ -148,6 +148,9 @@
                         </ui:PreferencesField>
                         <ui:PreferencesField Header="Show Space as ␣">
                             <CheckBox IsChecked="{Binding Settings.ShowSpaceAsUnicode}" Content="Show Space as Unicode character '␣'" />
+                        </ui:PreferencesField>
+                        <ui:PreferencesField Header="Separated characters">
+                            <CheckBox IsChecked="{Binding Settings.ShowCharactersSeparate}" Content="Treat each character as separate key press" />
                         </ui:PreferencesField>
                         <ui:PreferencesField Header="Show Application Icon">
                             <CheckBox IsChecked="{Binding Settings.ShowApplicationIcon}" Content="Display the icon of the active application" />
